@@ -162,6 +162,9 @@ Ce projet adopte une approche **Infrastructure as Code** pour le suivi des confi
 │   ├── IT_distribution_switch.cfg     # VLANs et Sécurité de port
 │   └── ...
 └── README.md
+│
+└── rapport.pdf # Document PDF resumant le projet
+
 ```
 
 ---
