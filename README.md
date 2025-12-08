@@ -35,20 +35,35 @@ Ce projet détaille la conception, la configuration et le déploiement d'une inf
 
 ## 📑 Table des Matières
 
-1.  [🌉 Architecture et Décisions de Conception](#-architecture-et-décisions-de-conception)
-    1. [1. Modèle Hiérarchique Cisco](#1-modèle-hiérarchique-cisco)
-    2. [2. Décisions Architecturales Clés](#2-décisions-architecturales-clés)
-2.  [📊 Plan d'Adressage et VLANs](#-plan-dadressage-et-vlans)
-3.  [🚀 Fonctionnalités Clés](#-fonctionnalités-clés)
-    1. [🔄 Redondance (HSRP \& EtherChannel)](#-redondance-hsrp--etherchannel)
-    2. [🛡️ Sécurité et Zones](#️-sécurité-et-zones)
-    3. [📶 Connectivité Sans Fil](#-connectivité-sans-fil)
-4.  [⚙️ Services et Protocoles](#️-services-et-protocoles)
-    1. [Infrastructure](#infrastructure)
-    2. [Serveurs (Hébergés en DMZ)](#serveurs-hébergés-en-dmz)
-5.  [📂 Structure du Dépôt](#-structure-du-dépôt)
+1.  [🏗️ Architecture du Projet](#-architecture-du-projet)
+2.  [🌉 Architecture et Décisions de Conception](#-architecture-et-décisions-de-conception)
+3.  [1. Modèle Hiérarchique Cisco](#1-modèle-hiérarchique-cisco)
+4.  [2. Décisions Architecturales Clés](#2-décisions-architecturales-clés)
+5.  [📊 Plan d'Adressage et VLANs](#-plan-dadressage-et-vlans)
+6.  [🚀 Fonctionnalités Clés](#-fonctionnalités-clés)
+7.  [🔄 Redondance (HSRP \& EtherChannel)](#-redondance-hsrp--etherchannel)
+8.  [🛡️ Sécurité et Zones](#️-sécurité-et-zones)
+9.  [📶 Connectivité Sans Fil](#-connectivité-sans-fil)
+10. [⚙️ Services et Protocoles](#️-services-et-protocoles)
+11. [Infrastructure](#infrastructure)
+12. [Serveurs (Hébergés en DMZ)](#serveurs-hébergés-en-dmz)
+13. [📂 Structure du Dépôt](#-structure-du-dépôt)
+14. [🛠️ Mise en place des outils IA](#-mise-en-place-des-outils-ia)
 
 ---
+
+## 🏗️ Architecture du Projet
+
+La topologie repose sur un modèle hiérarchique clairement segmenté et illustré dans `images/network_image_pt.png`. Elle se décompose comme suit :
+
+- **Cœur redondant :** Deux commutateurs Cisco 3650 forment l'épine dorsale du LAN, interconnectés par un Port-Channel L3 et exécutant HSRP pour garantir la bascule transparente des passerelles virtuelles.
+- **Distribution par département :** Chaque service métier (IT, RH, Marketing, Ventes) dispose de son commutateur de distribution, ce qui limite les domaines de broadcast et simplifie l'application de politiques adaptées à chaque équipe.
+- **Zone DMZ sécurisée :** Les serveurs Web/FTP/Mail résident derrière le pare-feu ASA 5506-X. Les ACLs et la translation NAT y sont centralisées afin de n'exposer que les ports strictement nécessaires.
+- **Bordure et accès WAN :** Un routeur edge connecte l'entreprise à l'ISP et propage par défaut les routes nécessaires vers l'extérieur tout en s'appuyant sur l'ASA pour l'inspection stateful.
+- **Accès utilisateur et Wi-Fi :** Des APs couvrent les zones de travail avec une authentification WPA2-PSK, tandis que les postes filaires rejoignent leur VLAN dédié via les commutateurs d'accès.
+- **Supervision et automatisation :** Le dossier `AI/` regroupe des scripts d'analyse (détection d'anomalies, maintenance prédictive) exploitant les journaux exportés pour anticiper les incidents.
+
+Cette organisation garantit à la fois la haute disponibilité, la simplicité de maintenance et l'évolution contrôlée du réseau.
 
 ## 🌉 Architecture et Décisions de Conception
 
@@ -148,3 +163,40 @@ Ce projet adopte une approche **Infrastructure as Code** pour le suivi des confi
 │   └── ...
 └── README.md
 ```
+
+---
+
+## 🛠️ Mise en place des outils IA
+
+Les scripts `AI/scripts/*.py` permettent d'automatiser l'analyse des journaux (`AI/data/logs.csv`) pour détecter rapidement des dérives réseau.
+
+### Installation des dépendances
+
+1. Se placer dans le dossier dédié :
+
+```powershell
+cd AI
+```
+
+2. (Optionnel) Créer puis activer un environnement virtuel pour isoler les dépendances :
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\activate
+```
+
+3. Installer toutes les bibliothèques requises :
+
+```powershell
+pip install -r requirements.txt
+```
+
+### Exécution rapide
+
+- Lancer l'analyse complète :
+
+  ```powershell
+  python scripts/run_complete_analysis.py
+  ```
+
+Pensez à rerun `pip install -r requirements.txt` après chaque mise à jour de la liste des dépendances afin de rester synchronisé avec l'équipe.
